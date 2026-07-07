@@ -6,7 +6,7 @@ import { cn } from '../lib/utils';
 import { motion } from 'framer-motion';
 
 export function ChatArea() {
-  const { chats, activeChatId, activeModel, activeSystemPrompt, addMessage, updateMessage, toggleSidebar, isSidebarOpen } = useChatStore();
+  const { chats, activeChatId, activeModel, activeSystemPrompt, addMessage, updateMessage, deleteMessage, toggleSidebar, isSidebarOpen } = useChatStore();
   
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -172,6 +172,8 @@ export function ChatArea() {
       if (err.name !== 'AbortError') {
         console.error("Chat error:", err);
         setError(err.message || "An error occurred while generating the response.");
+        // Remove the empty assistant message placeholder on error
+        deleteMessage(activeChatId, tempAssistantId);
       }
     } finally {
       setIsGenerating(false);
@@ -255,17 +257,16 @@ export function ChatArea() {
         )}
       </div>
 
-      {/* Error Banner */}
-      {error && (
-        <div className="bg-red-500/10 text-red-400 p-3 flex items-center justify-center gap-2 text-sm border-t border-red-500/20">
-          <AlertCircle size={16} />
-          {error}
-          <button onClick={() => setError(null)} className="ml-4 underline hover:text-red-300">Dismiss</button>
-        </div>
-      )}
-
       {/* Input Area */}
-      <div className="absolute bottom-0 left-0 right-0 lg:left-80 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent p-4 md:p-6 transition-all duration-300" style={{ left: isSidebarOpen ? '320px' : '0' }}>
+      <div className="absolute bottom-0 left-0 right-0 lg:left-80 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent p-4 md:p-6 transition-all duration-300 flex flex-col gap-3" style={{ left: isSidebarOpen ? '320px' : '0' }}>
+        {/* Error Banner inside input container to prevent overlap */}
+        {error && (
+          <div className="max-w-4xl mx-auto w-full bg-red-500/10 text-red-400 p-3.5 flex items-center gap-2.5 text-sm border border-red-500/20 rounded-xl backdrop-blur-md">
+            <AlertCircle size={16} className="flex-shrink-0" />
+            <span className="flex-1">{error}</span>
+            <button onClick={() => setError(null)} className="underline hover:text-red-300 text-xs cursor-pointer">Dismiss</button>
+          </div>
+        )}
         <div className="max-w-4xl mx-auto relative flex items-end gap-2 bg-zinc-900/50 backdrop-blur-2xl border border-zinc-800/50 rounded-2xl p-2 shadow-2xl focus-within:ring-1 focus-within:ring-purple-500/30 focus-within:border-purple-500/50 transition-all">
           
           <button
